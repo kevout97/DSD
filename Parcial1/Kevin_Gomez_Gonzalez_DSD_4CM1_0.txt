@@ -1,0 +1,824 @@
+/* Escriba un programa que imprima un mes del calendario. El usuario debe especificar el numero de dias del mes
+* y el dia de la semana en que inicia el mes*/
+
+#include <stdio.h>
+
+void imprimeMes(int dias, int inicio);
+
+void imprimeMes(int dias, int inicio){
+    int i = 1 - inicio;
+    int j = 1;
+    while( i < dias){
+        if( i < 0){
+            printf("\t");
+        }else{
+            printf("%d\t",(i + 1));
+        }
+
+        if( (j % 7) == 0 ){
+            printf("\n");
+        }
+        j++;
+        i++;
+    }
+}
+
+int main(){
+    printf("Ingresa el numero de dias: ");
+    int dias;
+    scanf("%d",&dias);
+    printf("Ingresa el dia de inicio (1 = Domingo, 7 = Sabado): ");
+    int inicio;
+    scanf("%d", &inicio);
+    printf("\n");
+    imprimeMes(dias,inicio);
+}
+***************************************************************************************************************************************************
+//Escriba un programa que calcule el factorial de un numero
+#include <stdio.h>
+
+int factorial(int numero);
+
+int factorial(int numero){
+    if(numero == 0 || numero == 1){
+        return 1;
+    }else{
+        return numero * factorial(numero - 1);
+    }
+}
+
+int main(){
+    printf("Ingresa un numero: ");
+    int numero;
+    scanf("%d",&numero);
+    printf("El factorial de %d es: %d\n",numero,factorial(numero));
+}
+***************************************************************************************************************************************************
+//Escriba un programa que lea una matriz de enteros de 5 x 5, y muestre la suma de sus columnas y sus filas
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int** sumaColumnasFilas(int** matriz, int filas,int columnas){
+    int** total = (int**)malloc(2*sizeof(int*));
+    total[0] = (int*)malloc(5*sizeof(int));
+    total[1] = (int*)malloc(5*sizeof(int));
+    for(int i = 0; i < filas; i ++){
+        for(int j = 0; j < columnas; j++){
+            total[0][i] += matriz[i][j];
+        }
+    }
+
+    for(int i = 0; i < columnas; i ++){
+        for(int j = 0; j < filas; j++){
+            total[1][i] += matriz[j][i];
+        }
+    }
+
+    return total;
+}
+
+int main(){
+    int** matriz = (int**)malloc(5*sizeof(int*));
+    for(int i = 0; i < 5; i++){
+        matriz[i] = (int*)malloc(5*sizeof(int));
+    }
+    printf("Ingrese los datos en la matriz\n");
+
+    for(int i = 0; i < 5; i++){
+        printf("Fila %d: \n",(i+1));
+        for(int j = 0; j < 5; j++){
+            scanf("%d",&(matriz[i][j]));
+        }
+    }
+
+    int** suma = sumaColumnasFilas(matriz,5,5);
+    printf("Total de cada fila: ");
+    for(int i = 0; i < 5; i++){
+        printf("%d\t",suma[0][i]);
+    }
+    printf("\n");
+    printf("Total de cada columna: ");
+    for(int i = 0; i < 5; i++){
+        printf("%d\t",suma[1][i]);
+    }
+    printf("\n");
+}
+***************************************************************************************************************************************************
+/*
+Escriba un programa que le pida al usuario que ingrese una serie de enteros (que almacena en una matriz) luego ordena los enteros llamando a la función selection_sort.
+y ordene de menor a mayor los numeros de dicho arreglo
+*/
+#include <stdio.h>
+#include <stdlib.h>
+
+int* selection_sort(int* matriz,int tamanio){
+    int i = 0, tmp = matriz[0];
+    while( i < tamanio){
+        if(tmp > matriz[i]){
+            matriz[i-1] = matriz[i];
+            matriz[i] = tmp;
+            tmp = matriz[0];
+            i = 0;
+        }else{
+            tmp = matriz[i];
+            i++;
+        }
+    }
+    return matriz;
+}
+
+void imprimeMatriz(int* matriz, int tamanio){
+    for(int i = 0; i < tamanio; i++){
+        printf("%d\t",matriz[i]);
+    }
+}
+
+int main(){
+    printf("Indique el tamaño de la matriz: ");
+    int tamanio;
+    scanf("%d", &tamanio);
+    int* matriz = (int*)malloc(tamanio * sizeof(int));
+    printf("Ingrese los numeros: \n");
+    for(int i = 0; i < tamanio; i++){
+        scanf("%d",&(matriz[i]));
+    }
+    int* final = selection_sort(matriz,tamanio);
+    printf("Maytriz final: ");
+    imprimeMatriz(final,tamanio);
+    printf("\n");
+}
+***************************************************************************************************************************************************
+/*Modifique el programa de poker.c de la sección 10.5 moviendo todas las variables externas a main y modificando 
+la función para que se comuniquen pasando los argumentos. 
+La función analyse_band necesita cambiar las variables rectas, de color, de cuatro, tres y pares para que tenga que pasarle punteros a esas variables.
+*/
+/*Classifies a poker hand*/
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define NUM_RANKS 13
+#define NUM_SUITS 4
+#define NUM_CARDS 5
+
+/*external variables*/
+
+int num_in_rank[NUM_RANKS];
+int num_in_suit[NUM_SUITS];
+bool straight, flush, four, three;
+int pairs; /* can be 0, 1, or */
+
+/* prototypes */
+void read_cards(void);
+void analyze_hand(void);
+void print_result(void);
+
+/************************************************************************************
+ * main: Calls read_cards_analyze_hand, and print_result                            *
+ *       repeatedly                                                                 *
+ * **********************************************************************************/
+
+int main (void){
+    for(;;){
+        read_cards();
+        analyze_hand();
+        print_result();
+    }   
+}
+
+/************************************************************************************
+ * read_cards: Reads the cards into the external                                    *
+ *             variables num_in_rank and num_in_suit;                               *
+ *             checks for bad cards and duplicate cards                             *
+ * **********************************************************************************/
+
+void read_cards(void){
+    bool card_exists[NUM_RANKS][NUM_SUITS];
+    char ch, rank_ch, suit_ch;
+    int rank, suit;
+    bool bad_card;
+    int cards_read = 0;
+
+    for(rank = 0; suit < NUM_SUITS; rank++){
+        num_in_rank[rank] = 0;
+        for(suit = 0; suit < NUM_SUITS; suit++){
+            card_exists[rank][suit] = false;
+        }
+    }
+
+    for( suit = 0; suit < NUM_SUITS; suit++){
+        num_in_suit[suit] = 0;
+    }
+
+    while(cards_read < NUM_CARDS){
+        bad_card = false;
+        printf("Enter a card: ");
+        rank_ch = getchar();
+        switch (rank_ch){
+            case '0': exit(EXIT_SUCCESS);
+            case '2': rank = 0; break;
+            case '3': rank = 1; break;
+            case '4': rank = 2; break;
+            case '5': rank = 3; break;
+            case '6': rank = 4; break;
+            case '7': rank = 5; break;
+            case '8': rank = 6; break;
+            case '9': rank = 7; break;
+            case 't': case 'T': rank = 8; break;
+            case 'j': case 'J': rank = 9; break;
+            case 'q': case 'Q': rank = 10; break;
+            case 'k': case 'K': rank = 11; break;
+            case 'a': case 'A': rank = 12; break;
+            default: bad_card = true; break;
+        }
+        suit_ch = getchar();
+        switch(suit_ch){
+            case 'c': case 'C': suit = 0; break;
+            case 'd': case 'D': suit = 1; break;
+            case 'h': case 'H': suit = 2; break;
+            case 's': case 'S': suit = 3; break;
+            default: bad_card = true; break;
+        }
+
+        while((ch = getchar()) != '\n')
+            if(ch != ' ') bad_card = true;
+        
+        if(bad_card)
+            printf("Bad card; ignored. \n");
+        else if (card_exists[rank][suit])
+            printf("Duplicate card; ignored. \n");
+        else{
+            num_in_rank[rank]++;
+            num_in_suit[suit]++;
+            card_exists[rank][suit] = true;
+            cards_read++;
+        }
+    }
+}
+
+/***********************************************************************************
+ * analyze_band: Determines wheter the hand contains a                             *
+ *               straight, a flush, four-of-a-kind,                                *
+ *               and/or three-of-a-kind; determines the                            * 
+ *               number of pairs; stores the results into                          *
+ *               the external variables straight, flush,                           *
+ *               four, three, and pairs                                            *
+ * *********************************************************************************/
+void anayze_hand(void){
+    int num_consec = 0;
+    int rank, suit;
+    straight = false;
+    flush = false;
+    four = false;
+    three = false;
+    pairs = 0;
+
+    /* check for flush*/
+    for (suit = 0; suit < NUM_SUITS;suit++)
+        if(num_in_suit[suit] == NUM_CARDS)
+            flush = true;
+    
+    /*check for straight*/
+    rank = 0;
+    while(num_in_rank[rank] == 0) rank++;
+    for(;rank < NUM_RANKS && num_in_rank[rank] > 0; rank++)
+        num_consec++;
+    if(num_consec == NUM_CARDS){
+        straight = true;
+        return;
+    }
+
+    /* check for 4-of-a-kind, 3-of-a-kind, and pairs*/
+    for(rank = 0; rank < NUM_RANKS; rank++){
+        if (num_in_rank[rank] == 4) four = true;
+        if (num_in_rank[rank] == 3) three = true;
+        if (num_in_rank[rank] == 2) pairs;
+    }
+}
+
+/**********************************************************************************
+ * print_result: Prints the classification of the hand,                           *
+ *               based on the values of ecternal                                  *
+ *               variables straight, flush, four, three,                          *
+ *               and pairs                                                        *
+ * ********************************************************************************/
+
+void print_result(void){
+    if(straight && flush) printf("Straight flush");
+    else if (four) printf("Four of a kiind");
+    else if (three && pairs == 1) printf("Full house");
+    else if (straight) printf("Straight");
+    else if (three) printf("Three of a kind");
+    else if (pairs == 2) printf("Two pairs");
+    else if (pairs == 1) printf("Pair");
+    else printf("High card");
+
+    printf("\n\n");
+}
+***************************************************************************************************************************************************
+
+/*Sorts an array od integers using Quicksort algoritm*/
+#include <stdio.h>
+#include <stdlib.h>
+#define N 5
+
+void quicksort(int* a, int* low, int* high);
+int* split(int* a, int* low, int* high);
+
+int main(){
+    int* a = (int*)malloc(sizeof(int)*N), i;
+
+    printf("Enter %d numbers to be sorted: ", N);
+    for(i = 0; i < N; i++)
+        scanf("%d",&a[i]);
+    int* tmp = (int*)malloc(sizeof(int));
+    *tmp = 0;
+    int* tmp2 = (int*)malloc(sizeof(int));
+    *tmp2 = N - 1;
+    quicksort(a,tmp,tmp2);
+    printf("In sorted order: ");
+    for(i = 0; i< N; i++)
+        printf("%d ",a[i]);
+    printf("\n");
+
+    return 0;
+}
+
+void quicksort(int* a,int* low,int* high){
+    int* middle = (int*)malloc(sizeof(int));
+    if(*low >= *high) return;
+    middle = split(a,low,high);
+    int* tmp = (int*)malloc(sizeof(int));
+    *tmp = *middle - 1;
+    quicksort(a,low,tmp);
+    *tmp = *middle + 1;
+    quicksort(a,tmp,high);
+}
+
+int* split(int* a,int* low, int* high){
+    int part_element = a[*low];
+    for(;;){
+        while (*low < *high && part_element <= a[*high])
+            (*high)--;
+        if(*low >= *high) break;
+        a[(*low)++] = a[*high];
+
+        while(*low < *high && a[*low] <= part_element)
+            (*low)++;
+        if(*low >= *high) break;
+        a[(*high)--] = a[*low];
+    }
+    a[*high] = part_element;
+    return high;
+}
+***************************************************************************************************************************************************
+//Escriba un programa que acepte una fecha del usuario en la forma mm / dd / yyyy y luego la muestre en la forma mes dd, yyyy donde 
+//mes es el nombre del mes
+//gcc p311_18.c -lm
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+char* obtenerMes(int mes);
+char* nuevaFecha(char* fecha);
+int caracter_a_entero(char* numero);
+
+int caracter_a_entero(char* numero){
+    int decimal;
+    for(int i = 0; i < strlen(numero); i++){
+        decimal += (numero[i] - '0') * (int)pow(10,strlen(numero) - i - 1);
+    }
+    return decimal;
+}
+
+char* obtenerMes(int mes){
+    char** meses = (char**)malloc(12*sizeof(char*));
+    for(int i = 0; i < 12; i++){
+        meses[i] = (char*)malloc(30*sizeof(char*));
+    }
+    strcpy(meses[0],"Enero");
+    strcpy(meses[1],"Febrero");
+    strcpy(meses[2],"Marzo");
+    strcpy(meses[3],"Abril");
+    strcpy(meses[4],"Mayo");
+    strcpy(meses[5],"Junio");
+    strcpy(meses[6],"Julio");
+    strcpy(meses[7],"Agosto");
+    strcpy(meses[8],"Septiembre");
+    strcpy(meses[9],"Octubre");
+    strcpy(meses[10],"Noviembre");
+    strcpy(meses[11],"Diciembre");
+
+    return meses[mes - 1];
+}
+
+char* nuevaFecha(char*fecha){
+    char* mes = strtok(fecha,"/");
+    char* dia = strtok(NULL,"/"); // La función strtok() al recibir NULL recuerda la cadena y la última palabra que devolvió y continua con la siguiente.
+    char* anio = strtok(NULL,"/");
+
+    char* nuevaFecha = (char*)malloc(50*sizeof(char));
+    strcpy(nuevaFecha,obtenerMes(caracter_a_entero(mes)));
+    strcat(nuevaFecha," ");
+    strcat(nuevaFecha,dia);
+    strcat(nuevaFecha,", ");
+    strcat(nuevaFecha,anio);
+
+    return nuevaFecha;
+}
+
+int main(){
+    printf("Ingrese la fecha (mm/dd/yyyy): ");
+    char* fecha = (char*)malloc(sizeof(char)*10);
+    scanf("%s",fecha);
+    printf("La fecha que ingresaste es: %s\n",nuevaFecha(fecha));
+}
+***************************************************************************************************************************************************
+//Escribe un programa que encuentre el más pequeño y el más grande en una serie de palabras.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define FILAS 7
+#define COLUMNAS 20
+
+char* masPequenio(char** palabras);
+char* masLargo(char** palabras);
+
+char* masPequenio(char** palabras){
+    int tamanio = strlen(palabras[0]);
+    char* palabra = (char*)malloc(COLUMNAS*sizeof(char));
+    for(int i = 0; i < FILAS; i++){
+        if(strlen(palabras[i]) <= tamanio){
+            tamanio = strlen(palabras[i]);
+            palabra = palabras[i];
+        }
+    }
+    return palabra;
+}
+
+char* masLargo(char** palabras){
+    int tamanio = strlen(palabras[0]);
+    char* palabra = (char*)malloc(COLUMNAS*sizeof(char));
+    for(int i = 0; i < FILAS; i++){
+        if(strlen(palabras[i]) >= tamanio){
+            tamanio = strlen(palabras[i]);
+            palabra = palabras[i];
+        }
+    }
+    return palabra;
+}
+
+int main(){
+    printf("Ingresa las palabras:\n");
+    char** palabras = (char**)malloc(FILAS*sizeof(char*));
+    for(int i = 0; i < FILAS; i++){
+        palabras[i] = (char*)malloc(COLUMNAS*sizeof(char));
+        scanf("%s",palabras[i]);
+    }
+    printf("La palabra mas pequenia es: %s\n",masPequenio(palabras));
+    printf("La palabra mas larga es: %s\n",masLargo(palabras));    
+}
+***************************************************************************************************************************************************
+//Escriba un programa que calcule el volumen de una esfera con un radio de 10 metros
+//gcc -o p1 p34_2.c -lm
+#include <stdio.h>
+#include <math.h>
+#define PI 3.1416
+
+float volumen(int radio);
+
+float volumen(int radio){
+    return (4.0f/3.0f)*PI*((float)pow(radio,3));
+}
+
+int main(){
+    int radio;
+    printf("Ingresa el radio de la esfera:\n");
+    scanf("%d",&radio);
+    printf("El volumen de la esfera es %.2f\n",volumen(radio));
+}
+***************************************************************************************************************************************************
+
+#include <stdio.h>
+#include "readline.h"
+#include <stdlib.h>
+
+#define NAME_LEN 25
+
+int max_parts = 1;
+
+struct part{
+    int number;
+    char name[NAME_LEN+1];
+    int on_hand;
+}; typedef struct part Part; 
+Part* inventory;
+
+int num_parts = 0; /*number of parts currently stored */
+
+int find_part(int number);
+void insert(void);
+void search(void);
+void update(void);
+void print(void);
+
+/*********************************************************
+ * main: Promps the user to enter an operation code,     *
+ *       then calls a function to perform the requested  *
+ *       action. Repeats until the user enters the       *
+ *       command 'q'. Prints an error message if the user*
+ *       enters an illegal code                          *
+ * *******************************************************/
+
+int main(){
+    inventory = (Part*)malloc(max_parts*sizeof(Part));
+    char code;
+    for(;;){
+        printf("Enter operation code: ");
+        scanf(" %c",&code);
+        while(getchar() != '\n') /*skips to end of line*/
+        ;
+        switch (code){
+            case 'i': insert();
+                     break;
+            case 's': search();
+                     break;
+            case 'u': update();
+                     break;
+            case 'p': print();
+                     break;
+            case 'q': return 0;
+            default: printf("Illegal code\n");
+        }
+        printf("\n");
+    }
+}
+
+/****************************************************************
+ * find_part: Looks up a part number in the inventory           *
+ *             array. Returms the array index if the part       *
+ *             number is found; otherwise, returns -1           *
+ * **************************************************************/
+
+int find_part(int number){
+    int i;
+    for(i = 0; i < num_parts; i++)
+        if(inventory[i].number == number)
+            return i;
+    return -1;
+}
+
+/*****************************************************************
+ * insert: Prompts the user for informaction about a new         *
+ *         part and the inserts the part into the                *
+ *         database. Prints an error message and returns         *
+ *         prematurely if the part already exists or the         *
+ *         database is full.                                     *
+ * ***************************************************************/
+
+void insert(void){
+    int part_number;
+    if(num_parts == max_parts){
+        inventory = (Part*)realloc(inventory,max_parts*2*sizeof(Part));
+        max_parts *= 2;
+        printf("The size of the database is extended\n");
+    }
+
+    printf("Enter part number: ");
+    scanf("%d", &part_number);
+
+    if (find_part(part_number) >= 0){
+        printf("Part already exists.\n");
+        return;
+    }
+
+    inventory[num_parts].number = part_number;
+    printf("Enter part name: ");
+    read_line(inventory[num_parts].name, NAME_LEN);
+    printf("Enter quantity on hand: ");
+    scanf("%d", &inventory[num_parts].on_hand);
+    num_parts++;
+}
+
+/**********************************************************************
+ * search: Prompts the user to enter a part number, then              *
+ *         looks up the part in the database. If the part             *
+ *         exists, prints the name and quantity on hand;              *
+ *         if not, prints an error message                            *
+ **********************************************************************/
+
+void search(void){
+    int i, number;
+    
+    printf("Enter part number: ");
+    scanf("%d", &number);
+    i = find_part(number);
+    if (i >= 0){
+        printf("Part name: %s\n", inventory[i].name);
+        printf("Quantity on hand: %d\n", inventory[i].on_hand);
+    }else
+        printf("Part not found.\n");
+}
+
+/**********************************************************************
+ * update: Prompts the user to enter a part number.                   *
+ *         Prints an error message if the part doesn't                *
+ *         exist; otherwise, prompts the user to enter                * 
+ *         change in quantity on hand and updates the                 *
+ *         database.                                                  *
+ **********************************************************************/
+
+void update(void){
+    int i, number, change;
+
+    printf("Enter part number: ");
+    scanf("%d",&number);
+    i = find_part(number);
+    if (i >= 0){
+        printf("Enter change in quantity on hand: ");
+        scanf("%d", &change);
+        inventory[i].on_hand += change;
+    }else
+        printf("Part not found.\n"); 
+}
+
+/***********************************************************************
+ * print: Prints a listing of all parts in the database                *
+ *        showing the part number, part name, and                      *
+ *        quantity on hand. Parts are printed in the                   *
+ *        order in which they were entered into the                    *
+ *        database.                                                    *
+ ***********************************************************************/
+
+void print(void){
+    int i;
+
+    printf("Part Number     Part Name       Quantity on Hand\n");
+    for (i = 0; i< num_parts; i++)
+        printf("%7d      %-25s%11d\n",inventory[i].number,inventory[i].name,inventory[i].on_hand);
+}
+***************************************************************************************************************************************************
+//Escriba un programa que acepte una fecha del usuario en la forma mm/dd/yyyy y luego la muestra en la forma yyyymmdd
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* nuevoFormato(char*fecha);
+
+char* nuevoFormato(char*fecha){
+    char* mes = strtok(fecha,"/");
+    char* dia = strtok(NULL,"/"); // La función strtok() al recibir NULL recuerda la cadena y la última palabra que devolvió y continua con la siguiente.
+    char* anio = strtok(NULL,"/");
+
+    char* nuevaFecha = (char*)malloc(8*sizeof(char));
+    strcpy(nuevaFecha,anio);
+    strcat(nuevaFecha,mes);
+    strcat(nuevaFecha,dia);
+
+    return nuevaFecha;
+}
+
+int main(){
+    char* fecha = (char*)malloc(10*sizeof(char));
+    printf("Fecha de ingreso (mm/dd/yyyy):\n");
+    scanf("%s",fecha);
+    printf("Ingresaste la fecha: %s\n",nuevoFormato(fecha));
+}
+***************************************************************************************************************************************************
+//Modifique el programa addfrac.c de la sección 3.2 para que el usuario ingrese ambas fracciones al mismo tiempo, separadas por un signo más
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int* suma(char*expresion);
+
+int* suma(char*expresion){
+    char* fraccion1 = strtok(expresion,"+");
+    char* fraccion2 = strtok(NULL,"+");
+
+    int numerador1 = *(strtok(fraccion1,"/")) - '0';
+    int denominador1 =  *(strtok(NULL,"/")) - '0';
+
+    int numerador2 = *(strtok(fraccion2,"/")) - '0';
+    int denominador2 = *(strtok(NULL,"/")) - '0';
+
+    int totalNumerador = (numerador1 * denominador2) + (numerador2 * denominador1);
+    int totalDenominador = denominador1 * denominador2;
+
+    int* total = (int*)malloc(2*sizeof(int));
+    total[0] = totalNumerador;
+    total[1] = totalDenominador;
+
+    return total;
+}
+
+int main(){
+    printf("Ingresa dos fracciones separadas por un signo de suma (n1/d1+n2/d2):\n");
+    char* expresion = (char*)malloc(7*sizeof(char));
+    scanf("%s",expresion);
+    int *total = suma(expresion);
+    printf("La suma es %d/%d\n",total[0],total[1]);
+}
+***************************************************************************************************************************************************
+//Escriba un programa que lea un entero ingresado por el usuario e imprima su valor en octal (base8)
+#include <stdio.h>
+#include <stdlib.h>
+
+void octal(int numero);
+
+void octal(int numero){
+    if(numero != 0){
+        octal(numero/8);
+        printf("%d", (numero % 8));
+    }
+}
+
+int main(){
+    printf("Ingresa un numero entre 0 y 32767:\n");
+    int numero;
+    scanf("%d",&numero);
+    printf("En octal, tu numero es:");
+    octal(numero);
+    printf("\n");
+}
+***************************************************************************************************************************************************
+/* Use la instrucción switch, escriba un programa que convierta una calificación numérica en una calificación de letras. 
+* Use la siguiente escala de calificación A = 90-100, B = 80-89, C = 70-79, D = 60-69, F = 0-59.
+* En caso contrario imprima un mensaje de error
+*/
+#include <stdio.h>
+#include <stdlib.h>
+
+char conversionCalificacion(int calificacion);
+
+char conversionCalificacion(int calificacion){
+    switch(calificacion){
+        case 10:
+        case 9:
+            return 'A';
+        case 8:
+            return 'B';
+        case 7:
+            return 'C';
+        case 6:
+            return 'D';
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return 'F';
+    }
+}
+
+int main(){
+    printf("Ingresa la calificacion: ");
+    int calificacion;
+    scanf("%d",&calificacion);
+    if(calificacion > 100 || calificacion < 0){
+        printf("La calificacion excede los rangos permitidos\n");
+    }else{
+        printf("Tu calificacion en letra es: %c\n",conversionCalificacion(calificacion/10));
+    }
+}
+***************************************************************************************************************************************************
+//Escriba un programa que imprima cuantos digitos tiene un numero. Asuma que el numero no tendrá mas de 4 digitos
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int contarDigitos(char* numero);
+
+int contarDigitos(char* numero){
+    return strlen(numero);
+}
+
+int main(){
+    printf("Ingresa un numero:\n");
+    char* numero = (char*)malloc(4*sizeof(char));
+    scanf("%s",numero);
+    printf("El numero %s tiene %d digitos\n",numero,contarDigitos(numero));
+}
+***************************************************************************************************************************************************
+#include <ctype.h>
+#include <stdio.h>
+#include "readline.h"
+
+int read_line(char str[], int n){
+    int ch, i = 0;
+
+    while(isspace(ch = getchar()))
+        ;
+    while (ch != '\n' && ch != EOF){
+        if (i < n)
+            str[i++] = ch;
+        ch = getchar();
+    }
+    str[i] = '\0';
+    return i;
+}
+***************************************************************************************************************************************************
