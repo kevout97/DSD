@@ -1,0 +1,424 @@
+#include <iostream>
+#include "Coordenada.h"
+using namespace std;
+
+Coordenada::Coordenada(double xx, double yy, double zz) : x(xx), y(yy), z(zz)
+{ }
+
+double Coordenada::obtenerX(){
+    return x;
+}
+
+double Coordenada::obtenerY(){
+    return y;
+}
+
+double Coordenada::obtenerZ(){
+    return z;
+}
+*****************************************************************************************************************************
+#ifndef COORDENADA_H_
+#define COORDENADA_H_
+
+class Coordenada{
+private:
+    double x;
+    double y;
+    double z;
+public:
+    Coordenada(double = 0, double = 0, double = 0);
+    double obtenerX();
+    double obtenerY();
+    double obtenerZ();
+};
+#endif
+*****************************************************************************************************************************
+#include "Fraccion.h"
+#include <iostream>
+using namespace std;
+Fraccion::Fraccion(int num, int deno){
+    numerador = num;
+    denominador = deno;
+}
+
+void Fraccion::inicializarFraccion(int num, int deno){
+    numerador = num;
+    denominador = deno;
+}
+
+double Fraccion::division(){
+    return ((double)numerador)/((double)denominador);
+}
+
+void Fraccion::simplificacion(){
+    int i = 2;
+        do{
+            if((numerador%i == 0) && (denominador%i == 0)){
+                numerador = numerador/i;
+                denominador = denominador/i;
+                i = 2;
+            }else{
+                i++;
+            }
+        }while((i < denominador) && (i < numerador));
+    return;
+}
+
+void Fraccion::imprimeFraccion(){
+    cout << "La Fraccion es: " << numerador << "/" << denominador << "\n";
+    return;
+}
+*****************************************************************************************************************************
+#ifndef FRACCION_H_
+#define FRACCION_H_
+class Fraccion{
+private:
+    int numerador;
+    int denominador;
+public:
+    Fraccion(int = 1, int = 1);
+    void inicializarFraccion(int,int);
+    double division();
+    void simplificacion();
+    void imprimeFraccion();
+};
+#endif
+*****************************************************************************************************************************
+programa6: programa6.cpp Ortoedro.o
+	g++ programa6.cpp Ortoedro.o Coordenada.o Rectangulo.o
+Ortoedro.o: Ortoedro.cpp Rectangulo.o Coordenada.o Ortoedro.h
+	g++ Ortoedro.cpp -c
+Rectangulo.o: Rectangulo.cpp Coordenada.o Rectangulo.h
+	g++ Rectangulo.cpp -c
+Coordenada.o: Coordenada.cpp Coordenada.h
+	g++ Coordenada.cpp -c
+*****************************************************************************************************************************
+#include <iostream>
+#include "Coordenada.h"
+#include "Rectangulo.h"
+#include "Ortoedro.h"
+using namespace std;
+
+Ortoedro::Ortoedro(Coordenada a,Coordenada b): inferior(a.obtenerX(),b.obtenerY(),b.obtenerX(),a.obtenerY()),
+    superior(a.obtenerX(),b.obtenerY(),b.obtenerX(),a.obtenerY()),
+    derecha(a.obtenerY(),b.obtenerZ(),b.obtenerY(),a.obtenerZ()),
+    izquierda(a.obtenerY(),b.obtenerZ(),b.obtenerY(),a.obtenerZ()),
+    frontal(a.obtenerX(),b.obtenerZ(),b.obtenerX(),a.obtenerZ()),    
+    trasero(a.obtenerX(),b.obtenerZ(),b.obtenerX(),a.obtenerZ()),
+    superiorDer(b.obtenerX(),b.obtenerY(),b.obtenerZ()),
+    inferiorIzq(a.obtenerX(),a.obtenerY(),a.obtenerZ())
+{}
+
+Coordenada Ortoedro::obtieneSupDer(){
+    return superiorDer;
+}
+
+Coordenada Ortoedro::obtieneInfIzq(){
+    return inferiorIzq;
+}
+
+double Ortoedro::obtieneArea(){
+    return (inferior.obtieneArea()+superior.obtieneArea()+derecha.obtieneArea()+izquierda.obtieneArea()+frontal.obtieneArea()+trasero.obtieneArea());
+}
+
+double Ortoedro::obtieneVolumen(){
+    return ((inferior.obtieneArea())*(superiorDer.obtenerZ()-inferiorIzq.obtenerZ()));
+}
+*****************************************************************************************************************************
+#ifndef ORTOEDRO_H_
+#define ORTOEDRO_H_
+#include "Coordenada.h"
+#include "Rectangulo.h"
+
+class Ortoedro{
+private:
+    Rectangulo inferior;
+    Rectangulo superior;
+    Rectangulo derecha;
+    Rectangulo izquierda;
+    Rectangulo frontal;
+    Rectangulo trasero;
+    Coordenada superiorDer;
+    Coordenada inferiorIzq;
+public:
+    Ortoedro(Coordenada a,Coordenada b);
+    double obtieneVolumen();
+    double obtieneArea();
+    Coordenada obtieneSupDer();
+    Coordenada obtieneInfIzq();
+};
+#endif
+*****************************************************************************************************************************
+/*
+Se desea calcular la raíz cuadrada de un número entero n utilizando al algoritmo babilónico. 
+Investigue en Internet el algoritmo y prográmelo, haciendo n del tipo double y el resultado con cuatro decimales.
+*/
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+double getRaiz(double numero);
+
+double getRaiz(double numero){
+    double resultado = numero;
+    double tmp = 0;
+
+    while(tmp != resultado){
+        tmp = resultado;
+        resultado = 0.5*((numero/resultado)+resultado);
+    }
+    return resultado;
+}
+
+int main(){
+    cout << "Ingresa el numero: ";
+    double numero;
+    cin >> numero;
+    setprecision(4);
+    cout << "La raiz cuadrada es: " << getRaiz(numero) << "\n";
+}
+*****************************************************************************************************************************
+/*
+Escriba un programa que imprima la altura de un edificio, si se conoce el tiempo que tardó una pelota de tenis desde que se dejó 
+caer en la parte más alta del edificio y hasta llegar al piso
+*/
+
+#include <iostream>
+using namespace std;
+
+float getAltura(int tiempo);
+
+float getAltura(int tiempo){
+    return (float)(0.5*9.81*tiempo*tiempo);
+}
+
+int main(){
+    int tiempo;
+    cout << "Ingresa el tiempo: ";
+    cin >> tiempo;
+    cout << "La altura del edificio es: " << getAltura(tiempo) << "\n";
+}
+*****************************************************************************************************************************
+/*
+Escriba un programa que reciba del usuario un valor entero de tiempo en segundos, y que imprima su equivalente en horas, minutos y segundos. 
+Por ejemplo si el usuario introduce 50381, entonces el programa debe imprimir:13 horas, 59 minutos y 41 segundos.
+*/
+
+#include <iostream>
+using namespace std;
+
+int getHoras(int tiempo);
+int getMinutos(int tiempo);
+int getSegundos(int tiempo);
+
+int getHoras(int tiempo){
+    return (tiempo/60)/60;
+}
+
+int getMinutos(int tiempo){
+    return (tiempo/60)%60;
+}
+
+int getSegundos(int tiempo){
+    return tiempo%60;
+}
+
+int main(){
+    int tiempo;
+    cout << "Ingresa los segundos: ";
+    cin >> tiempo;
+    cout << getHoras(tiempo) << " horas, " << getMinutos(tiempo) << " minutos y " << getSegundos(tiempo) << " segundos.\n";
+}
+*****************************************************************************************************************************
+/*
+Defina  una  clase  Temperatura  que  almacene  de  manera  interna  un  valor  de  temperatura  en grados Kelvin. 
+También elabore las funciones setTempKelvin, setTempFahrenheity setTempCelsiusque tomen  la  temperatura  en  la  escala  especificada  por  el  usuario  y  la  almacenen  en  grados  Kelvin. 
+Asimismo  escriba  las  funciones  que  impriman  el  valor  almacenado  en  la  clase  y  en  los  grados Centigrados,  Kelvin  o  Fahrenheit,  según  lo  solicite  el  usuario.  
+Escriba  una  función  principal  para probar la clase
+*/
+#include <iostream>
+#include "Temperature.h"
+using namespace std;
+int main() {   
+    Temperature t;
+    t.printTempCelsiusque();
+    t.printTempFahrenheity();
+    t.printTempKelvin();
+
+    t.setTempCelsiusque(10);
+    t.printTempCelsiusque();
+    t.printTempFahrenheity();
+    t.printTempKelvin();
+
+    t.setTempFahrenheity(64);
+    t.printTempCelsiusque();
+    t.printTempFahrenheity();
+    t.printTempKelvin();
+}
+*****************************************************************************************************************************
+/* Defina una clase llamada Fraccion, la cual almacena un numerador y un denominador enteros. 
+Debe incluir una función para que el usuario pueda inicializar a ambos, así como una función que devuelva el resultado de la división entre el numerador y el denominador como un double. 
+Por último debe existir una función que devuelva a la fracción en su mínima expresión. Por ejemplo la fracción 18/15 deberá imprimirse como 6/5. 
+Pruebe la clase con el código mínimo en el programa principal. 
+ */
+#include <iostream>
+#include "Fraccion.h"
+using namespace std;
+int main() {   
+    Fraccion f;
+    f.inicializarFraccion(50,100);
+    f.imprimeFraccion();
+    cout << "La division es: " << f.division() << "\n";
+    cout << "Aplicando Simplificacion...\n";
+    f.simplificacion();
+    f.imprimeFraccion();
+}
+*****************************************************************************************************************************
+#include <iostream>
+#include "Ortoedro.h"
+#include "Coordenada.h"
+using namespace std;
+int main( ){
+    Ortoedro ortoedro1(Coordenada(0,0,0),Coordenada(4,5,6));
+    cout << "El area es : " << ortoedro1.obtieneArea() << endl;
+    cout << "El volumen es : " << ortoedro1.obtieneVolumen() << endl;
+    
+    return 0;
+}
+*****************************************************************************************************************************
+/*Elabore un programa para encontrar los números primos menores al valor N que introduzca el usuario, mediante el algoritmo de la Criba de Eratóstenes:
+http://es.wikipedia.org/wiki/Criba_de_Erat%C3%B3stenes
+Use un template vector para almacenar objetos de una clase, cuyos miembros son los números enteros y un dato tipo bool, para descartar al objeto en el caso de que no sea primo (originalmente todos los elementos del vector tienen un valor true en este dato miembro).*/
+#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+void mostrar_criba(vector<int> criba){
+    cout << endl;
+    for (int i = 0; i < criba.size(); i++)
+        cout << criba[i] << "\t";
+    cout << endl;
+}
+
+vector<int> criba_eratostenes(int n){
+    vector<int> criba;
+    int current_primo;  // numero primo que iremos tomando del vector
+    // vector con numeros desde 2 hasta n
+    for (int i = 2; i <= n; i++)
+        criba.push_back(i);
+    if (n == 2 || n == 3) 
+        return criba;
+    // iterador para el vector criba
+    vector<int>::iterator it = criba.begin();
+    current_primo = *it;  // El primer primo es el 2
+    do{
+        vector<int>::iterator it2 = it + 1;
+        for(; it2 <= criba.end(); it2++)
+            if(*it2 % current_primo == 0)
+                criba.erase(it2);
+        it++;
+        current_primo = *it;
+    } while (pow(current_primo, 2) < n);
+
+    return criba;
+}
+
+int main(){
+    int n;      // Limite de criba
+    vector<int> num_primos;
+    cout << "Número límite: ";
+    cin >> n;
+    num_primos = criba_eratostenes(n);
+    mostrar_criba(num_primos);
+
+    return 0;
+}
+*****************************************************************************************************************************
+#include <iostream>
+#include "Coordenada.h"
+#include "Rectangulo.h"
+using namespace std;
+
+
+Rectangulo::Rectangulo(double xSupIzq, double ySupIzq, double xInfDer, double yInfDer):superiorIzq(xSupIzq, ySupIzq), inferiorDer(xInfDer, yInfDer)
+{ }
+
+Rectangulo::Rectangulo(Coordenada c1,Coordenada c2) : superiorIzq(c1.obtenerX(),c1.obtenerY()), inferiorDer(c2.obtenerX(),c2.obtenerY())
+{ }
+
+Coordenada Rectangulo::obtieneSupIzq(){
+    return superiorIzq;
+}
+
+Coordenada Rectangulo::obtieneInfDer(){
+    return inferiorDer;
+}
+
+double Rectangulo::obtieneArea(){
+    return ((inferiorDer.obtenerX()-superiorIzq.obtenerX())*(superiorIzq.obtenerY()-inferiorDer.obtenerY()));
+}
+*****************************************************************************************************************************
+#ifndef RECTANGULO_H_
+#define RECTANGULO_H_
+#include "Coordenada.h"
+
+class Rectangulo{
+private:
+    Coordenada superiorIzq;
+    Coordenada inferiorDer;
+public:
+    Rectangulo(double xSupIzq, double ySupIzq, double xInfDer, double yInfDer);
+    Rectangulo(Coordenada c1,Coordenada c2);
+    Coordenada obtieneSupIzq();
+    Coordenada obtieneInfDer();
+    double obtieneArea();
+};
+#endif
+*****************************************************************************************************************************
+#include "Temperature.h"
+#include <iostream>
+using namespace std;
+Temperature::Temperature(double kelvin){
+    degrees = kelvin;
+}
+void Temperature::setTempKelvin(double kelvin){
+    degrees = kelvin;   
+    return;
+}
+void Temperature::setTempFahrenheity(double fahrenheity){
+    degrees = (fahrenheity - 32) * 0.55555 + 273.15;
+    return;
+}
+void Temperature::setTempCelsiusque(double celsius){
+    degrees = celsius + 273.15;
+    return;
+}
+void Temperature::printTempKelvin(){
+    cout << "The temperature is: " << degrees << " °K\n";
+    return;
+}
+void Temperature::printTempFahrenheity(){
+    cout << "The Temperature is: " << ( (degrees - 273.15) * (1.8) + 32) << " °F\n";
+    return;
+}
+void Temperature::printTempCelsiusque(){
+    cout << "The temperature is: " << (degrees - 273.15) << " °C\n";
+}
+*****************************************************************************************************************************
+#ifndef TEMPERATURE_H_
+#define TEMPERATURE_H_
+class Temperature{
+private:
+    double degrees;
+public:
+    Temperature(double = 310.15);
+    void setTempKelvin(double);
+    void setTempFahrenheity(double);
+    void setTempCelsiusque(double);
+    void printTempKelvin();
+    void printTempFahrenheity();
+    void printTempCelsiusque();
+};
+#endif
+*****************************************************************************************************************************
