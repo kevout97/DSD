@@ -6,14 +6,14 @@ Use un template vector para almacenar objetos de una clase, cuyos miembros son l
 #include <cmath>
 using namespace std;
 
-void mostrar_criba(vector<int> criba){
+void imp_criba(vector<int> criba){
     cout << endl;
     for (int i = 0; i < criba.size(); i++)
         cout << criba[i] << "\t";
     cout << endl;
 }
 
-vector<int> criba_eratostenes(int n){
+vector<int> generar_criba(int n){
     vector<int> criba;
     int current_primo;  // numero primo que iremos tomando del vector
     // vector con numeros desde 2 hasta n
@@ -41,8 +41,8 @@ int main(){
     vector<int> num_primos;
     cout << "Número límite: ";
     cin >> n;
-    num_primos = criba_eratostenes(n);
-    mostrar_criba(num_primos);
+    num_primos = generar_criba(n);
+    imp_criba(num_primos);
 
     return 0;
 }
