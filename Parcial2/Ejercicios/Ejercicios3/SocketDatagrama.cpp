@@ -34,7 +34,7 @@ int SocketDatagrama::recibe(PaqueteDatagrama p){
     cout << "En espera de datos..." <<endl;
     int clilen = sizeof(direccionForanea);
     i = recvfrom(s, (char *) num, p.obtieneLongitud()*sizeof(char), 0, (struct sockaddr *)&direccionForanea, (socklen_t*)&clilen);;
-    cout << "Te lo envio: " << inet_ntoa(direccionForanea.sin_addr) << ":"<< ntohs(direccionForanea.sin_port) << endl;
+    cout << "Conexion recibida: " << inet_ntoa(direccionForanea.sin_addr) << ":"<< ntohs(direccionForanea.sin_port) << endl;
     envia(p);
 }
 

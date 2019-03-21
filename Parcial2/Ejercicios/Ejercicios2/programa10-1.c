@@ -34,14 +34,13 @@ int main(void)
    
    /*cuando se utiliza por numero de puerto el 0, el sistema se encarga de asignarle uno */
    client_addr.sin_port = htons(0);
-   bind(s, (struct sockaddr *)&client_addr,sizeof(client_addr));
+   //bind(s, (struct sockaddr *)&client_addr,sizeof(client_addr));
    num[0] = 2;
    num[1] = 5; /*rellena el mensaje */
    sendto(s, (char *)num, 2 * sizeof(int), 0, (struct sockaddr *) &msg_to_server_addr, sizeof(msg_to_server_addr));
    
    /* se bloquea esperando respuesta */
-   recvfrom(s, (char *)&res, sizeof(int), 0, NULL, NULL);
-   printf("2 + 5 = %d\n", res);
+   //recvfrom(s, (char *)&res, sizeof(int), 0, NULL, NULL);
+   //printf("2 + 5 = %d\n", res);
    close(s);
 }
-

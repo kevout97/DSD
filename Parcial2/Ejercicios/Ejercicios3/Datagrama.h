@@ -11,19 +11,19 @@ using namespace std;
 
 class PaqueteDatagrama { 
 	public:
-		PaqueteDatagrama(string, unsigned int, string , int ); 
+		PaqueteDatagrama(char *, unsigned int, char * , int ); 
 		PaqueteDatagrama(unsigned int );
-		string obtieneDireccion();
+		char * obtieneDireccion();
 		unsigned int obtieneLongitud(); 
 		int obtienePuerto();
-		string obtieneDatos();
+		char * obtieneDatos();
 
 		void inicializaPuerto(int); 
-		void inicializaIp(string );
-		void inicializaDatos(string );
+		void inicializaIp(char* );
+		void inicializaDatos(char* );
 	private:
-		string datos;
-		string ip;
+		char* datos;
+		char* ip;
 		unsigned int longitud; 
 		int puerto;
 };
