@@ -1,0 +1,409 @@
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <fstream>
+#include "FileClass.h"
+
+using namespace std;
+
+FileClass::FileClass(char* nombre,int size){
+	strcpy(name,nombre);
+	sizeFile = size;
+}
+
+FileClass::FileClass(){}
+
+char* FileClass::getName(){
+	return name;
+}
+
+int FileClass::getSize(){
+	return sizeFile;
+}
+
+int FileClass::getSizeFile(char* nombre){
+	ifstream is(nombre, ios::binary);
+	is.seekg (0, is.end);
+    int length = is.tellg();
+    is.seekg (0, is.beg);
+    is.close();
+	return length;
+}
+
+void FileClass::setName(char* nombre){
+	strcpy(name,nombre);
+}
+
+char* FileClass::getData(char* nombre){
+	char* dataFile = (char*)malloc(sizeof(char));
+	char* tmp = (char*)malloc(sizeof(char));
+	ifstream infile(nombre,ifstream::binary);
+	if(infile){
+		infile.seekg (0, ios::end);
+		int size = infile.tellg();
+		dataFile = (char*)malloc(size*sizeof(char));
+		infile.seekg (0, ios::beg);
+		infile.read (dataFile, size);
+		infile.close();
+	}else{
+		cout << "Error al abrir el archivo" << endl;
+	}
+	return dataFile;
+}
+
+void FileClass::writeFile(char* nombre,char* contenido){
+	ofstream outfile(nombre,ofstream::binary);
+	outfile.write(contenido,strlen(contenido));
+	outfile.close();
+}
+
+void FileClass::deleteFile(char* nombre){
+	if( remove( nombre ) != 0 )
+		cout << "Error al eliminar el archivo" << endl;
+	else
+		cout << "El archivo fue eliminado" << endl;
+}
+*****************************************************************************************************************************
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class FileClass { 
+	public:
+		FileClass(char * nombre, int size);
+		FileClass();
+		char * getName();
+		int getSize();
+		void setName(char* nombre);
+		char* getData(char* nombre);
+		void writeFile(char* nombre,char* contenido);
+        void deleteFile(char* nombre);
+		int getSizeFile(char* nombre);
+
+	private:
+		char name[255];
+        int sizeFile;
+};
+*****************************************************************************************************************************
+#include <iostream>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "FileClass.h"
+#include "SocketDatagrama.h"
+#define PUT 1
+#define GET 2
+#define DELETE 3
+
+using namespace std;
+int puerto = 7201;
+
+int main(int argc, char const *argv[]){// 1 IP Server, 2 Puerto Server, 3 Nombre Archivo, 4 Opcion
+    char* ipServidor = (char*)malloc(sizeof(char)*strlen(argv[1]));
+    strcpy(ipServidor,argv[1]);
+    char* name;
+    char* data;
+    char* tam = (char*)malloc(sizeof(char));
+    int puertoServidor = atoi(argv[2]), opcion = atoi(argv[4]), sizeDatagram;
+    FileClass *fc = new FileClass();
+    SocketDatagrama sd(puerto);
+    PaqueteDatagrama * pd = new PaqueteDatagrama((char*)argv[4],sizeof(int),ipServidor,puertoServidor);
+    sd.envia(*pd);
+
+    switch (opcion){
+        case PUT:
+            fc = new FileClass((char*)argv[3],0); //Se guarda el nombre del archivo en un objeto
+            sprintf(tam,"%d",sizeof(*fc)); 
+            pd = new PaqueteDatagrama((char*)tam,sizeof(int),ipServidor,puertoServidor); 
+            sd.envia(*pd); 
+            pd = new PaqueteDatagrama((char*)fc,sizeof(FileClass),ipServidor,puertoServidor);
+            sd.envia(*pd); // Enviamos el objeto con el nombre del archivo
+            sprintf(tam,"%d",fc->getSizeFile(fc->getName()));
+            pd = new PaqueteDatagrama((char*)tam,sizeof(int),ipServidor,puertoServidor);
+            sd.envia(*pd); // Enviamos el tamanio del archivo
+            data = (char*)malloc(sizeof(char)*fc->getSizeFile(fc->getName()));
+            strcpy(data,fc->getData(fc->getName()));
+            pd = new PaqueteDatagrama((char*)data,fc->getSizeFile(fc->getName()),ipServidor,puertoServidor);
+            sd.envia(*pd); // Enviamos el contenido del archivo
+            cout << "Archivo: "<< argv[3] << " enviado al servidor" << endl;
+            break;
+        
+        case GET:
+            fc = new FileClass((char*)argv[3],0); //Se guarda el nombre del archivo en un objeto
+            sprintf(tam,"%d",sizeof(*fc)); 
+            pd = new PaqueteDatagrama((char*)tam,sizeof(int),ipServidor,puertoServidor);
+            sd.envia(*pd);
+            pd = new PaqueteDatagrama((char*)fc,sizeof(FileClass),ipServidor,puertoServidor);
+            sd.envia(*pd);
+            sizeDatagram = atoi(sd.recibe(sizeof(int)));
+            data = (char*)malloc(sizeof(char)*sizeDatagram);
+            strcpy(data,sd.recibe(sizeDatagram));
+            fc->writeFile(fc->getName(),data);
+            cout << "Archivo: "<< fc->getName() << " recibido desde el servidor" << endl;
+            break;
+
+        case DELETE:
+            cout << "DELETE" << endl;
+            fc = new FileClass((char*)argv[3],0);
+            sprintf(tam,"%d",sizeof(*fc));
+            pd = new PaqueteDatagrama((char*)tam,sizeof(int),ipServidor,puertoServidor);
+            sd.envia(*pd);
+            pd = new PaqueteDatagrama((char*)fc,sizeof(FileClass),ipServidor,puertoServidor);
+            sd.envia(*pd);
+            cout << "Archivo: "<< fc->getName() << " eliminado en el servidor" << endl;
+            break;
+
+        default:
+            cout << "Opcion invalida" << endl;
+            break;
+    }
+}
+*****************************************************************************************************************************
+#include <iostream>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "FileClass.h"
+#include "SocketDatagrama.h"
+#define PUT 1
+#define GET 2
+#define DELETE 3
+
+using namespace std;
+int puerto = 7200;
+int main(){
+    int puertoCliente = 7201, sizeDatagram;
+    char* data = (char*)malloc(sizeof(char));
+    char* name = (char*)malloc(sizeof(char));
+    char* tam = (char*)malloc(sizeof(char));
+    FileClass *fc = new FileClass();
+    SocketDatagrama sd(puerto);
+    PaqueteDatagrama *pd;
+    for(;;){
+        int opcion = atoi(sd.recibe(sizeof(int)));
+        switch (opcion){
+            case PUT:
+                sizeDatagram = atoi(sd.recibe(sizeof(int)));
+                fc = new FileClass();
+                memcpy(fc,sd.recibe(sizeDatagram),sizeDatagram);//Se recibe el nombre del archivo
+                sizeDatagram = atoi(sd.recibe(sizeof(int))); //Se recibe el tamanio del archivo
+                data = (char*)malloc(sizeof(char)*sizeDatagram);
+                memcpy(data,sd.recibe(sizeDatagram),sizeDatagram);//Se recibe el contenido del archivo
+                fc->writeFile(fc->getName(),data);
+                cout << "Archivo " << fc->getName() << "recibido " << endl;
+                break;
+            
+            case GET:
+                sizeDatagram = atoi(sd.recibe(sizeof(int)));
+                fc = new FileClass();
+                memcpy(fc,sd.recibe(sizeDatagram),sizeDatagram);
+                data = (char*)malloc(sizeof(char)*fc->getSizeFile(fc->getName()));
+                strcpy(data,fc->getData(fc->getName()));
+                sprintf(tam,"%d",fc->getSizeFile(fc->getName()));
+                pd = new PaqueteDatagrama((char*)tam,sizeof(int),(char*)sd.obtieneIPCliente(),puertoCliente);
+                sd.envia(*pd);
+                pd = new PaqueteDatagrama((char*)data,fc->getSizeFile(fc->getName()),(char*)sd.obtieneIPCliente(),puertoCliente);
+                sd.envia(*pd);
+                break;
+
+            case DELETE:
+                sizeDatagram = atoi(sd.recibe(sizeof(int)));
+                fc = new FileClass();
+                memcpy(fc,sd.recibe(sizeDatagram),sizeDatagram);
+                fc->deleteFile(fc->getName());
+                break;
+
+            default:
+                cout << "Opcion invalida" << endl;
+                break;
+        }
+    }
+}
+*****************************************************************************************************************************
+client: mainclient.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o
+	g++ mainclient.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o -o client
+FileClass.o: FileClass.cpp FileClass.h
+	g++ FileClass.cpp -c
+SocketDatagrama.o: SocketDatagrama.cpp PaqueteDatagrama.o SocketDatagrama.h
+	g++ SocketDatagrama.cpp -c
+PaqueteDatagrama.o: PaqueteDatagrama.cpp PaqueteDatagrama.h
+	g++ PaqueteDatagrama.cpp -c
+*****************************************************************************************************************************
+server: mainserver.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o
+	g++ mainserver.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o -o server
+FileClass.o: FileClass.cpp FileClass.h
+	g++ FileClass.cpp -c
+SocketDatagrama.o: SocketDatagrama.cpp PaqueteDatagrama.o SocketDatagrama.h
+	g++ SocketDatagrama.cpp -c
+PaqueteDatagrama.o: PaqueteDatagrama.cpp PaqueteDatagrama.h
+	g++ PaqueteDatagrama.cpp -c
+*****************************************************************************************************************************
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <iostream>
+#include <string>
+#include <string.h>
+#include "PaqueteDatagrama.h"
+
+using namespace std;
+
+PaqueteDatagrama::PaqueteDatagrama(char * cad, unsigned int tam, char * ipa, int port){
+	// cout << "Cad: " << cad << endl;
+	// cout << "Tam: " << tam << endl;
+	// cout << "IP: " << ipa << endl;
+	datos = (char*)malloc(tam*sizeof(char));
+	ip = (char*)malloc(16*sizeof(char));
+	memcpy(datos,cad,tam);
+	memcpy(ip,ipa,16);
+	longitud = tam;
+	puerto=port;
+}
+
+PaqueteDatagrama::PaqueteDatagrama(unsigned int tam){
+	longitud = tam;
+}
+
+char * PaqueteDatagrama::obtieneDireccion(){
+	return ip; 
+}
+
+unsigned int PaqueteDatagrama::obtieneLongitud(){
+	return longitud; 
+}
+
+int PaqueteDatagrama::obtienePuerto(){
+	return puerto; 
+}
+
+char * PaqueteDatagrama::obtieneDatos(){
+	return datos; 
+}
+
+void PaqueteDatagrama::inicializaPuerto(int port){
+	puerto = port; 
+}
+
+void PaqueteDatagrama::inicializaIp(char* ipa){
+	ip = (char*)malloc(16*sizeof(char));
+	memcpy(ip,ipa,16);
+}
+
+void PaqueteDatagrama::inicializaDatos(char* cad){
+	datos = (char*)malloc(sizeof(&cad)*sizeof(char));
+	memcpy(datos,cad,sizeof(&cad));
+}
+*****************************************************************************************************************************
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class PaqueteDatagrama { 
+	public:
+		PaqueteDatagrama(char *, unsigned int, char * , int ); 
+		PaqueteDatagrama(unsigned int );
+		char * obtieneDireccion();
+		unsigned int obtieneLongitud(); 
+		int obtienePuerto();
+		char * obtieneDatos();
+
+		void inicializaPuerto(int); 
+		void inicializaIp(char* );
+		void inicializaDatos(char* );
+	private:
+		char* datos;
+		char* ip;
+		unsigned int longitud; 
+		int puerto;
+};
+*****************************************************************************************************************************
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <iostream>
+#include "SocketDatagrama.h"
+using namespace std;
+
+SocketDatagrama::SocketDatagrama(int port){//Inicializa el servidor 
+    s = socket(AF_INET, SOCK_DGRAM, 0);
+    bzero((char *)&direccionLocal, sizeof(direccionLocal));
+    direccionLocal.sin_family = AF_INET;
+    direccionLocal.sin_addr.s_addr = INADDR_ANY;
+    direccionLocal.sin_port = htons(port);
+    bind(s, (struct sockaddr *)&direccionLocal, sizeof(direccionLocal));
+    cout << "Servidor inicializado..." << endl;
+}
+
+int SocketDatagrama::createSocket(int port, char* ip){//Create un socket para la conexion a otro server
+    int sc = socket(AF_INET, SOCK_DGRAM, 0);
+    bzero((char *)&direccionForanea, sizeof(direccionForanea));
+    direccionForanea.sin_family = AF_INET;
+    direccionForanea.sin_addr.s_addr = inet_addr(ip);
+    direccionForanea.sin_port = htons(port);
+    return sc;
+}
+
+
+char* SocketDatagrama::recibe(int size){
+    char* num = (char*)malloc(size*sizeof(char));
+    ipCliente = (char*)malloc(sizeof(char));
+    unsigned int tam = sizeof(direccionForanea);
+    recvfrom(s, (char *) num, size*sizeof(char), 0, (struct sockaddr *)&direccionForanea, &tam);
+    strcpy(ipCliente,inet_ntoa(direccionForanea.sin_addr));
+    return num;
+}
+
+char* SocketDatagrama::obtieneIPCliente(){
+    return ipCliente;
+}
+
+void SocketDatagrama::envia(PaqueteDatagrama p){
+    int sc = createSocket(p.obtienePuerto(),p.obtieneDireccion());
+    int clilen = sizeof(direccionForanea);
+    sendto(sc, p.obtieneDatos(), p.obtieneLongitud()*sizeof(char), 0, (struct sockaddr *)&direccionForanea, clilen);
+}
+*****************************************************************************************************************************
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <strings.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <iostream>
+#include "PaqueteDatagrama.h"
+
+using namespace std;
+class SocketDatagrama{
+public:
+    SocketDatagrama(int);
+    int createSocket(int,char*);
+    char* recibe(int size);
+    void envia(PaqueteDatagrama p);
+    char* obtieneIPCliente();
+private:
+    struct sockaddr_in direccionLocal;
+    struct sockaddr_in direccionForanea;
+    int s;
+    char* ipCliente;
+};
+*****************************************************************************************************************************
