@@ -1,0 +1,8 @@
+server: mainserver.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o
+	g++ mainserver.cpp SocketDatagrama.o PaqueteDatagrama.o FileClass.o -o server
+FileClass.o: FileClass.cpp FileClass.h
+	g++ FileClass.cpp -c
+SocketDatagrama.o: SocketDatagrama.cpp PaqueteDatagrama.o SocketDatagrama.h
+	g++ SocketDatagrama.cpp -c
+PaqueteDatagrama.o: PaqueteDatagrama.cpp PaqueteDatagrama.h
+	g++ PaqueteDatagrama.cpp -c
